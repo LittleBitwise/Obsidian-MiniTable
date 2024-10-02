@@ -9,16 +9,16 @@ import {
 
 interface MiniTableSettings {
 	codeblockPrefix: string;
-	rowHeaderFormat: string;
-	rowFooterFormat: string;
-	rowSeparatorFormat: string;
+	rowHeaderPrefix: string;
+	rowFooterPrefix: string;
+	rowSeparator: string;
 }
 
 const DEFAULT_SETTINGS: MiniTableSettings = {
 	codeblockPrefix: 'minitable',
-	rowHeaderFormat: '-',
-	rowFooterFormat: '=',
-	rowSeparatorFormat: ',',
+	rowHeaderPrefix: '*',
+	rowFooterPrefix: '_',
+	rowSeparator: '|',
 }
 
 export default class MiniTable extends Plugin {
@@ -36,17 +36,18 @@ export default class MiniTable extends Plugin {
 			const foot = table.createEl('tfoot');
 
 			const rows = src.split("\n");
+			rows.pop();
 
 			// Calculate the max width of the table before creating it.
 			let tableWidth = 1;
 			for (let i = 0; i < rows.length; ++i) {
-				const cols = rows[i].split(this.settings.rowSeparatorFormat);
+				const cols = rows[i].split(this.settings.rowSeparator);
 				if (cols.length > tableWidth) tableWidth = cols.length;
 			}
 
 			// Create elements for each row.
 			for (let i = 0; i < rows.length; ++i) {
-				const cols = rows[i].split(this.settings.rowSeparatorFormat);
+				const cols = rows[i].split(this.settings.rowSeparator);
 
 				// console.log(rows[i]);
 				// console.log(cols);
@@ -54,12 +55,12 @@ export default class MiniTable extends Plugin {
 				// Init row/cell based on format found at the start (first cell) of the row.
 				let row;
 				let cell;
-				if (cols[0].contains(this.settings.rowHeaderFormat)) {
-					cols[0] = cols[0].replace(this.settings.rowHeaderFormat, ' ')
+				if (cols[0].contains(this.settings.rowHeaderPrefix)) {
+					cols[0] = cols[0].replace(this.settings.rowHeaderPrefix, ' ')
 					row = head.createEl('tr');
 					cell = 'th';
-				} else if (cols[0].contains(this.settings.rowFooterFormat)) {
-					cols[0] = cols[0].replace(this.settings.rowFooterFormat, ' ')
+				} else if (cols[0].contains(this.settings.rowFooterPrefix)) {
+					cols[0] = cols[0].replace(this.settings.rowFooterPrefix, ' ')
 					row = foot.createEl('tr');
 					cell = 'th';
 				} else {
@@ -107,7 +108,7 @@ class MiniTableSettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Codeblock prefix')
-			.setDesc('This plugin is enabled on codeblocks with this name on the first row.')
+			.setDesc('The plugin is enabled on codeblocks with this name on the first row.')
 			.addText(text => text
 				.setPlaceholder('minitable')
 				.setValue(this.plugin.settings.codeblockPrefix)
@@ -119,30 +120,30 @@ class MiniTableSettingsTab extends PluginSettingTab {
 			.setName('Row separator')
 			.setDesc('Separates each column in the table.')
 			.addText(text => text
-				.setPlaceholder('Format')
-				.setValue(this.plugin.settings.rowSeparatorFormat)
+				.setPlaceholder('|')
+				.setValue(this.plugin.settings.rowSeparator)
 				.onChange(async (value) => {
-					this.plugin.settings.rowSeparatorFormat = value;
+					this.plugin.settings.rowSeparator = value;
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-			.setName('Header format')
+			.setName('Header prefix')
 			.setDesc('If present, marks the row as a header.')
 			.addText(text => text
-				.setPlaceholder('Format')
-				.setValue(this.plugin.settings.rowHeaderFormat)
+				.setPlaceholder('*')
+				.setValue(this.plugin.settings.rowHeaderPrefix)
 				.onChange(async (value) => {
-					this.plugin.settings.rowHeaderFormat = value;
+					this.plugin.settings.rowHeaderPrefix = value;
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-			.setName('Footer format')
+			.setName('Footer prefix')
 			.setDesc('If present, marks the row as a footer.')
 			.addText(text => text
-				.setPlaceholder('Format')
-				.setValue(this.plugin.settings.rowFooterFormat)
+				.setPlaceholder('_')
+				.setValue(this.plugin.settings.rowFooterPrefix)
 				.onChange(async (value) => {
-					this.plugin.settings.rowFooterFormat = value;
+					this.plugin.settings.rowFooterPrefix = value;
 					await this.plugin.saveSettings();
 				}));
 	}
