@@ -11,14 +11,14 @@ interface MiniTableSettings {
 	codeblockPrefix: string;
 	rowHeaderPrefix: string;
 	rowFooterPrefix: string;
-	rowSeparator: string;
+	columnSeparator: string;
 }
 
 const DEFAULT_SETTINGS: MiniTableSettings = {
 	codeblockPrefix: 'minitable',
 	rowHeaderPrefix: '*',
 	rowFooterPrefix: '_',
-	rowSeparator: '|',
+	columnSeparator: '|',
 }
 
 export default class MiniTable extends Plugin {
@@ -41,13 +41,13 @@ export default class MiniTable extends Plugin {
 			// Calculate the max width of the table before creating it.
 			let tableWidth = 1;
 			for (let i = 0; i < rows.length; ++i) {
-				const cols = rows[i].split(this.settings.rowSeparator);
+				const cols = rows[i].split(this.settings.columnSeparator);
 				if (cols.length > tableWidth) tableWidth = cols.length;
 			}
 
 			// Create elements for each row.
 			for (let i = 0; i < rows.length; ++i) {
-				const cols = rows[i].split(this.settings.rowSeparator);
+				const cols = rows[i].split(this.settings.columnSeparator);
 
 				// console.log(rows[i]);
 				// console.log(cols);
@@ -71,7 +71,9 @@ export default class MiniTable extends Plugin {
 				// Create individual cell elements for this row.
 				let j = 0;
 				for (; j < cols.length; ++j) {
-					row.createEl(cell as keyof HTMLElementTagNameMap, { text: cols[j] });
+					let text = cols[j].trim()
+					text = text != '' ? text : ' '
+					row.createEl(cell as keyof HTMLElementTagNameMap, { text });
 				}
 
 				// Fill missing cells based on the maximum width of the table.
@@ -107,23 +109,13 @@ class MiniTableSettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Codeblock prefix')
-			.setDesc('The plugin is enabled on codeblocks with this name on the first row.')
-			.addText(text => text
-				.setPlaceholder('minitable')
-				.setValue(this.plugin.settings.codeblockPrefix)
-				.onChange(async (value) => {
-					this.plugin.settings.codeblockPrefix = value;
-					await this.plugin.saveSettings();
-				}));
-		new Setting(containerEl)
-			.setName('Row separator')
+			.setName('Column separator')
 			.setDesc('Separates each column in the table.')
 			.addText(text => text
 				.setPlaceholder('|')
-				.setValue(this.plugin.settings.rowSeparator)
+				.setValue(this.plugin.settings.columnSeparator)
 				.onChange(async (value) => {
-					this.plugin.settings.rowSeparator = value;
+					this.plugin.settings.columnSeparator = value;
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
@@ -144,6 +136,16 @@ class MiniTableSettingsTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.rowFooterPrefix)
 				.onChange(async (value) => {
 					this.plugin.settings.rowFooterPrefix = value;
+					await this.plugin.saveSettings();
+				}));
+		new Setting(containerEl)
+			.setName('Codeblock prefix')
+			.setDesc('The plugin is enabled on codeblocks with this name on the first row.')
+			.addText(text => text
+				.setPlaceholder('minitable')
+				.setValue(this.plugin.settings.codeblockPrefix)
+				.onChange(async (value) => {
+					this.plugin.settings.codeblockPrefix = value;
 					await this.plugin.saveSettings();
 				}));
 	}
